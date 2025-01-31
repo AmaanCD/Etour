@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Service
+  db:
+    image: postgres:13 # Use PostgreSQL version 13
+    container_name: etour-postgres # Name of the container
+    environment:
+      POSTGRES_DB: etour_db # Database name
+      POSTGRES_USER: postgres # Database user
+      POSTGRES_PASSWORD: Amaan@123 # Database password
+    ports:
+      - "5432:5432" # Map host port 5432 to container port 5432
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data # Persist database data
+
+  # Spring Boot Application Service
+  app:
+    build: . # Build the Docker image using the Dockerfile in the current directory
+    container_name: etour-app # Name of the container
+    ports:
+      - "8080:8080" # Map host port 8080 to container port 8080
+    depends_on:
+      - db # Ensure the database starts before the application
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/etour_db # Database URL
+      SPRING_DATASOURCE_USERNAME: postgres # Database username
+      SPRING_DATASOURCE_PASSWORD: Amaan@123 # Database password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update # Hibernate auto-update schema
+
+# Define a volume to persist PostgreSQL data
+volumes:
+  postgres_data:
