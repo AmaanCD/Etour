@@ -1,0 +1,55 @@
+pipeline {
+    agent any  // Runs the pipeline on any available agent
+
+    environment {
+        // Define your repository URL and Docker Compose file path
+        REPO_URL = 'https://github.com/AmaanCD/Etour.git'
+        GIT_CREDENTIALS_ID = 'git-hub-s'  // Credentials ID to use for GitHub authentication
+        COMPOSE_FILE = 'docker-compose-final.yaml'  // Path to your Docker Compose file
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                script {
+                    // Clone the GitHub repository using the configured credentials
+                    echo "Cloning repository from GitHub..."
+                    git credentialsId: "${GIT_CREDENTIALS_ID}", url: "${REPO_URL}"
+                }
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                script {
+                    // Run docker-compose build to build the images defined in the docker-compose.yml file
+                    echo "Building Docker images using Docker Compose..."
+                    sh "docker-compose -f ${COMPOSE_FILE} build"
+                }
+            }
+        }
+
+        stage('Deploy with Docker Compose') {
+            steps {
+                script {
+                    // Run docker-compose up to start the containers
+                    echo "Deploying services with Docker Compose..."
+                    sh "docker-compose -f ${COMPOSE_FILE} down"
+
+                }
+            }
+        }
+
+        stage('Post-Deployment Validation') {
+            steps {
+                script {
+                    // Optionally, you can add some health checks here to verify that the services are running
+                    echo "Validating deployment..."
+                    sh 'docker-compose -f ${COMPOSE_FILE} ps'  // Check container status
+                }
+            }
+        }
+    }
+
+
+}
