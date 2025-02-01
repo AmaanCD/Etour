@@ -34,6 +34,7 @@ pipeline {
                 script {
                     // Run docker-compose up to start the containers
                     echo "Deploying services with Docker Compose..."
+                    sh "docker-compose -f ${COMPOSE_FILE} down"
                     sh "docker-compose -f ${COMPOSE_FILE} up -d"
                 }
             }
