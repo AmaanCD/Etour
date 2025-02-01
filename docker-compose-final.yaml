@@ -25,6 +25,18 @@ services:
 
     # Keycloak Service for Authentication and Authorization
 
+  pgadmin:
+    image: dpage/pgadmin4  # Official pgAdmin 4 image
+    container_name: pgadmin-container
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin  # Login credentials for pgAdmin
+    ports:
+      - "9080:80"  # Expose pgAdmin's UI on port 8080
+
+    volumes:
+      - ./pgadmin_data:/var/lib/pgadmin
+    restart: always
 
   # Spring Boot Application Service
   app:
@@ -45,3 +57,4 @@ services:
 volumes:
   postgres_data:
   redis-data:
+  pgadmin_data:
