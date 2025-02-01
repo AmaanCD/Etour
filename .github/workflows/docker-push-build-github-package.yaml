@@ -13,12 +13,13 @@ jobs:
       # Check out the repository
       - name: Checkout code
         uses: actions/checkout@v3
+        #Lower the repo owner name to avoid error
       - id: string
         uses: ASzc/change-string-case-action@v1
         with:
           string: ${{ github.repository_owner }}
       - run: |
-          echo "${{ steps.string.outputs.lowercase }}" 
+          echo "${{ steps.string.outputs.lowercase }}"  
 
       # Log in to GitHub Packages
       - name: Log in to GitHub Packages
@@ -35,3 +36,5 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/${{ steps.string.outputs.lowercase }}/e-tour-app:latest
+
+          ##docker pull ghcr.io/amaancd/e-tour-app:latest
