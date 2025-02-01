@@ -1,0 +1,66 @@
+pipeline {
+    agent any  // Runs on any available agent
+
+    environment {
+        GIT_REPO_URL = 'https://github.com/AmaanCD/Etour.git'  // GitHub repo URL
+        DOCKER_COMPOSE_FILE = 'docker-compose-final.yaml'  // Docker Compose file
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                script {
+                    // Pull the latest code from the GitHub repository
+                    echo 'Cloning the repository from GitHub'
+                    git url: "${GIT_REPO_URL}", branch: 'main'  // Adjust the branch if needed
+                }
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                script {
+                    // Build Docker images from the Docker Compose file
+                    echo 'Building Docker images using Docker Compose'
+                    sh 'docker-compose -f ${DOCKER_COMPOSE_FILE} build'  // Builds images based on Dockerfiles
+                }
+            }
+        }
+
+        stage('Deploy with Docker Compose') {
+            steps {
+                script {
+                    // Deploy services in detached mode using Docker Compose
+                    echo 'Deploying Docker Compose services'
+                    sh 'docker-compose -f ${DOCKER_COMPOSE_FILE} up -d'  // Deploy containers in detached mode
+                }
+            }
+        }
+
+        stage('Post-Deployment Validation') {
+            steps {
+                script {
+                    // Optionally, you can add steps here to validate if the deployment was successful
+                    echo 'Validating the deployment'
+                    // Example: Check if Spring Boot app is running
+                    sh 'curl -f http://localhost:8080/api/v1/destination'  // This checks if the Spring Boot app is accessible
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Cleaning up workspace'
+            cleanWs()  // Clean up workspace after each run
+        }
+
+        success {
+            echo 'Deployment successful'
+        }
+
+        failure {
+            echo 'Deployment failed. Please check the logs.'
+        }
+    }
+}
