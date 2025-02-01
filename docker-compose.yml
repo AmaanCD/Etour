@@ -23,6 +23,25 @@ services:
     volumes:
       - ./redis-data:/data # Persist Redis data
 
+    # Keycloak Service for Authentication and Authorization
+  keycloak:
+      image: quay.io/keycloak/keycloak:21.0.0
+      container_name: etour-keycloak
+      environment:
+        KEYCLOAK_ADMIN: admin
+        KEYCLOAK_ADMIN_PASSWORD: admin
+        KC_DB: postgres
+        KC_DB_URL: jdbc:postgresql://db:5432/etour_db
+        KC_DB_USERNAME: postgres
+        KC_DB_PASSWORD: Amaan@123
+        KC_HOSTNAME: localhost
+      ports:
+        - "8081:8080" # Keycloak runs on port 8080 inside the container
+      depends_on:
+        - db
+      volumes:
+        - ./keycloak-data:/opt/keycloak/data # Persist Keycloak data
+
   # Spring Boot Application Service
   app:
     build: . # Build the Docker image using the Dockerfile in the current directory
