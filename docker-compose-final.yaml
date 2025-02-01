@@ -34,6 +34,7 @@ services:
     ports:
       - "9080:80"  # Expose pgAdmin's UI on port 8080
 
+
     volumes:
       - ./pgadmin_data:/var/lib/pgadmin
     restart: always
