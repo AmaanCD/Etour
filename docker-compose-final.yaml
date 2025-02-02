@@ -13,6 +13,8 @@ services:
       - "5432:5432" # Map host port 5432 to container port 5432
     volumes:
       - ./postgres_data:/var/lib/postgresql/data # Persist database data
+    networks:
+      - etour-network
 
   # Redis Service for Caching
   redis:
@@ -22,7 +24,8 @@ services:
       - "6379:6379" # Map host port 6379 to container port 6379
     volumes:
       - ./redis-data:/data # Persist Redis data
-
+    networks:
+      - etour-network
     # Keycloak Service for Authentication and Authorization
 
   pgadmin:
@@ -34,10 +37,42 @@ services:
     ports:
       - "9080:80"  # Expose pgAdmin's UI on port 8080
 
-
     volumes:
       - ./pgadmin_data:/var/lib/pgadmin
     restart: always
+    networks:
+      - etour-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:18.0.2
+    container_name: keycloak-etour
+    environment:
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 7080
+      KC_HOSTNAME_STRICT_BACKCHANNEL: "true"
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HEALTH_ENABLED: "true"
+      KC_LOG_LEVEL: info
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:7080/health/ready" ]
+      interval: 15s
+      timeout: 2s
+      retries: 15
+    command: [ "start-dev", "--http-port", "7080", "--https-port", "7443" ]
+    networks:
+      - etour-network
+
+
+    ports:
+      - "7080:7080"  # Exposing Keycloak on port 8080
+      # Volume for Keycloak data
+      # Volume for Keycloak themes
+    depends_on:
+      - db
+    restart: always
+
+
 
   # Spring Boot Application Service
   app:
@@ -53,9 +88,15 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres # Database username
       SPRING_DATASOURCE_PASSWORD: Amaan@123 # Database password
       SPRING_JPA_HIBERNATE_DDL_AUTO: update # Hibernate auto-update schema
-
+    networks:
+      - etour-network
 # Define a volume to persist PostgreSQL data
 volumes:
   postgres_data:
   redis-data:
   pgadmin_data:
+  keycloak_data:
+
+networks:
+  etour-network:
+    driver: bridge
