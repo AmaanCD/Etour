@@ -12,7 +12,7 @@ services:
     ports:
       - "5432:5432" # Map host port 5432 to container port 5432
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data # Persist database data
+      - postgres_data:/var/lib/postgresql/data # Persist database data
     networks:
       - etour-network
 
@@ -23,7 +23,7 @@ services:
     ports:
       - "6379:6379" # Map host port 6379 to container port 6379
     volumes:
-      - ./redis-data:/data # Persist Redis data
+      - redis-data:/data # Persist Redis data
     networks:
       - etour-network
     # Keycloak Service for Authentication and Authorization
@@ -38,7 +38,7 @@ services:
       - "9080:80"  # Expose pgAdmin's UI on port 8080
 
     volumes:
-      - ./pgadmin_data:/var/lib/pgadmin
+      - pgadmin_data:/var/lib/pgadmin
     restart: always
     networks:
       - etour-network
@@ -47,15 +47,13 @@ services:
     image: quay.io/keycloak/keycloak:18.0.2
     container_name: keycloak-etour
     environment:
-      - KEYCLOAK_ADMIN=admin                 # Admin username for Keycloak
-      - KEYCLOAK_ADMIN_PASSWORD=admin       # Admin password for Keycloak
-      - KEYCLOAK_DB_VENDOR=postgres         # Use PostgreSQL as the DB vendor
-      - KEYCLOAK_DB_HOST=db           # Hostname for the PostgreSQL service
-      - KEYCLOAK_DB_PORT=5432              # Default PostgreSQL port
-      - KEYCLOAK_DB_DATABASE=keycloak_etour    # Database name for Keycloak
-      - KEYCLOAK_DB_USER=postgres      # Username for the PostgreSQL database
-      - KEYCLOAK_DB_PASSWORD=Amaan@123 # Password for the PostgreSQL database
-      - KEYCLOAK_HTTP_PORT=7080
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/keycloak_etour
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: Amaan@123
+      KC_HOSTNAME: localhost
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:7080/health/ready" ]
       interval: 15s
