@@ -83,6 +83,7 @@ services:
     depends_on:
       - db # Ensure the database starts before the application
       - redis
+      - keycloak
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/etour_db # Database URL
       SPRING_DATASOURCE_USERNAME: postgres # Database username
