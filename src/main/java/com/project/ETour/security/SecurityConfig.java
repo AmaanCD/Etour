@@ -16,10 +16,9 @@ public class SecurityConfig  {
         httpSecurity.
                 authorizeHttpRequests(auth->
                         auth.anyRequest().authenticated()
-                ).oauth2ResourceServer(oauth->
-                        oauth.jwt(
-                                jwt->jwt.jwtAuthenticationConverter(new JwtAuthenticationConverter())
-                        ));
+                ).oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt.jwkSetUri("http://keycloak:7080/realms/Etour/protocol/openid-connect/certs"))
+                );
         return httpSecurity.build();
 
 
