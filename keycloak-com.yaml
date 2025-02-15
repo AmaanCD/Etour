@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Service
+  db:
+    image: postgres:13 # Use PostgreSQL version 13
+    container_name: etour-postgres # Name of the container
+    environment:
+      POSTGRES_DB: etour_db # Database name
+      POSTGRES_USER: postgres # Database user
+      POSTGRES_PASSWORD: Amaan@123 # Database password
+    ports:
+      - "5432:5432" # Map host port 5432 to container port 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persist database data
+    networks:
+      - etour-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:18.0.2
+    container_name: keycloak-etour
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/keycloak_etour
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: Amaan@123
+      KC_HOSTNAME: localhost
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:7080/health/ready" ]
+      interval: 15s
+      timeout: 2s
+      retries: 15
+    command: [ "start-dev", "--http-port", "7080", "--https-port", "7443" ]
+    depends_on:
+      - db
+    ports:
+      - "7080:7080"  # Exposing Keycloak on port 8080
+      # Volume for Keycloak data
+      # Volume for Keycloak themes
+    networks:
+      - etour-network
+
+  pgadmin:
+    image: dpage/pgadmin4  # Official pgAdmin 4 image
+    container_name: pgadmin-container
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin  # Login credentials for pgAdmin
+    ports:
+      - "9080:80"  # Expose pgAdmin's UI on port 8080
+
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    restart: always
+    networks:
+      - etour-network
+
+volumes:
+  postgres_data:
+
+  pgadmin_data:
+
+
+networks:
+  etour-network:
+    driver: bridge

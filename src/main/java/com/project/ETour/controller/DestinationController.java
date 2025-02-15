@@ -1,13 +1,11 @@
 package com.project.ETour.controller;
 
 import com.project.ETour.model.Destination;
+import com.project.ETour.model.DestinationRecord;
 import com.project.ETour.service.DestinationService;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -29,6 +27,12 @@ public class DestinationController {
     @GetMapping(value = "/destination/{type}")
     public ResponseEntity<List<Destination>> fetchDestinationsByType(@PathVariable String type){
         return new ResponseEntity<>(this.destinationService.fetchDestinationsByType(type),HttpStatusCode.valueOf(200));
+    }
+
+    @PostMapping(value = "/destination")
+    public ResponseEntity<Void> save(@RequestBody DestinationRecord destinationRecord){
+        this.destinationService.save(destinationRecord);
+        return new ResponseEntity<Void>(HttpStatusCode.valueOf(201));
     }
 
 }
