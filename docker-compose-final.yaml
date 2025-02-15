@@ -90,6 +90,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: Amaan@123 # Database password
       SPRING_JPA_HIBERNATE_DDL_AUTO: update # Hibernate auto-update schema
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: http://keycloak:7080/realms/etour
+      SPRING_SECURITY_CERTS : http://keycloak:7080/realms/etour/protocol/openid-connect/certs
     pull_policy: always #This is must or else it will never pull latest image from github action
 
     networks:
