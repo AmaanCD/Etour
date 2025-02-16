@@ -62,146 +62,69 @@ services:
       - db
     restart: always
 
-  redis-master1:
+  redis-node1:
     image: redis:7.2-alpine
-    container_name: redis-master1
-
-    ports:
-      - "7001:6379"
+    container_name: redis-node1
     volumes:
-      - redis-master1-data:/data                # Named volume for persistence
-      - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-node1-data:/data                # Named volume for persistence
     networks:
       - etour-network
-    command: redis-server /usr/local/etc/redis/redis.conf
-    environment:
-      - REDIS_PASSWORD=Amaan@123
+    command: redis-server --port 7000 --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 -appendonly yes
+
     deploy:
       resources:
         limits:
           cpus: '1.0'
-          memory: 2G
+          memory: 1G
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD} ping | grep PONG"]
-      interval: 5s
-      timeout: 3s
-      retries: 3
-
-  redis-master2:
-      image: redis:7.2-alpine
-      container_name: redis-master2
-
-      ports:
-        - "7002:6379"
-      volumes:
-        - redis-master2-data:/data
-        - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
-      networks:
-        - etour-network
-      command: redis-server /usr/local/etc/redis/redis.conf
-      environment:
-        - REDIS_PASSWORD=Amaan@123
-      restart: unless-stopped
-      healthcheck:
-        test: [ "CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD} ping | grep PONG" ]
-        interval: 5s
-        timeout: 3s
-        retries: 3
-
-  redis-master3:
-      image: redis:7.2-alpine
-      container_name: redis-master3
-
-      ports:
-        - "7003:6379"
-      volumes:
-        - redis-master3-data:/data
-        - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
-      networks:
-        - etour-network
-      command: redis-server /usr/local/etc/redis/redis.conf
-      environment:
-        - REDIS_PASSWORD=Amaan@123
-      restart: unless-stopped
-      healthcheck:
-        test: [ "CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD} ping | grep PONG" ]
-        interval: 5s
-        timeout: 3s
-        retries: 3
-
-  redis-master4:
-      image: redis:7.2-alpine
-      container_name: redis-master4
-
-      ports:
-        - "7004:6379"
-      volumes:
-        - redis-master4-data:/data
-        - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
-      networks:
-        - etour-network
-      command: redis-server /usr/local/etc/redis/redis.conf
-      environment:
-        - REDIS_PASSWORD=Amaan@123
-      restart: unless-stopped
-      healthcheck:
-        test: [ "CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD} ping | grep PONG" ]
-        interval: 5s
-        timeout: 3s
-        retries: 3
-
-  redis-master5:
-      image: redis:7.2-alpine
-      container_name: redis-master5
-
-      ports:
-        - "7005:6379"
-      volumes:
-        - redis-master5-data:/data
-        - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
-      networks:
-        - etour-network
-      command: redis-server /usr/local/etc/redis/redis.conf
-      environment:
-        - REDIS_PASSWORD=Amaan@123
-      restart: unless-stopped
-      healthcheck:
-        test: [ "CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD} ping | grep PONG" ]
-        interval: 5s
-        timeout: 3s
-        retries: 3
-
-  redis-master6:
-      image: redis:7.2-alpine
-      container_name: redis-master6
-
-      ports:
-        - "7006:6379"
-      volumes:
-        - redis-master6-data:/data
-        - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
-      networks:
-        - etour-network
-      command: redis-server /usr/local/etc/redis/redis.conf
-      environment:
-        - REDIS_PASSWORD=Amaan@123
-      restart: unless-stopped
-      healthcheck:
-        test: [ "CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD} ping | grep PONG" ]
-        interval: 5s
-        timeout: 3s
-        retries: 3
 
 
+  redis-node2:
+    image: redis:7.2-alpine
+    container_name: redis-node2
+    volumes:
+      - redis-node2-data:/data                # Named volume for persistence
+    networks:
+      - etour-network
+    command: redis-server --port 7001 --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 -appendonly yes
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    restart: unless-stopped
+
+  redis-node3:
+    image: redis:7.2-alpine
+    container_name: redis-node3
+    volumes:
+      - redis-node3-data:/data                # Named volume for persistence
+    networks:
+      - etour-network
+    command: redis-server --port 7002 --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 -appendonly yes
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    restart: unless-stopped
 
 
-    # Optional: Redis Exporter for Prometheus Monitoring
-    # redis-exporter:
-    #   image: oliver006/redis_exporter:latest
-    #   ports:
-    #     - "9121:
-
+  cluster-init:
+    image: redis:7.2-alpine
+    depends_on:
+      - redis-node3
+      - redis-node2
+      - redis-node1
+    command: >
+      bash -c "
+      sleep 10
+      echo 'Intialization Redis Cluster...'
+      redis-cli --cluster create redis-node1:7000 redis-node2:7001 redis-node3:7002 --cluster-replica 0 --cluster-yes
+      "
+      
 
 
   # Spring Boot Application Service
@@ -213,12 +136,9 @@ services:
     depends_on:
       - db # Ensure the database starts before the application
       - keycloak
-      - redis-master1
-      - redis-master2
-      - redis-master3
-      - redis-master4
-      - redis-master5
-      - redis-master6
+      - cluster-init
+
+
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/etour_db # Database URL
       SPRING_DATASOURCE_USERNAME: postgres # Database username
@@ -233,15 +153,11 @@ services:
 # Define a volume to persist PostgreSQL data
 volumes:
   postgres_data:
-
   pgadmin_data:
   keycloak_data:
-  redis-master3-data:
-  redis-master1-data:
-  redis-master2-data:
-  redis-master4-data:
-  redis-master5-data:
-  redis-master6-data:
+  redis-node1-data:
+  redis-node2-data:
+  redis-node3-data:
 
 networks:
   etour-network:
