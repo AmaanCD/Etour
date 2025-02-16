@@ -5,6 +5,7 @@ import com.project.ETour.model.DestinationRecord;
 import com.project.ETour.service.DestinationService;
 
 import org.redisson.Redisson;
+import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.ClusterServersConfig;
 import org.redisson.config.Config;
@@ -29,26 +30,43 @@ public class DestinationController {
     public ResponseEntity<List<Destination>> fetchAllDestination(){
 
         Config config = new Config();
-        ClusterServersConfig clusterConfig = config.useClusterServers()
-                .addNodeAddress("redis://redis-master1:6379") // Use service name
-                .addNodeAddress("redis://redis-master2:6379")
-                .addNodeAddress("redis://redis-master3:6379")
-                .addNodeAddress("redis://redis-master4:6379")
-                .addNodeAddress("redis://redis-master5:6379")
-                .addNodeAddress("redis://redis-master6:6379")
-                .setPassword("Amaan@123"); // Redis password
+//             config.useClusterServers()
+//                .addNodeAddress("redis://redis-master1:6379") // Use service name
+//                .addNodeAddress("redis://redis-master2:6379")
+//                .addNodeAddress("redis://redis-master3:6379")
+//                .addNodeAddress("redis://redis-master4:6379")
+//                .addNodeAddress("redis://redis-master5:6379")
+//                .addNodeAddress("redis://redis-master6:6379")
+//                .setPassword("Amaan@123"); // Redis password
+try {
+    config.useClusterServers()
+            // Note: Use service names defined in docker-compose (and internal container ports)
+            .addNodeAddress(
+                    "redis://redis-master1:6379",
+                    "redis://redis-master2:6379",
+                    "redis://redis-master3:6379",
+                    "redis://redis-master4:6379",
+                    "redis://redis-master5:6379",
+                    "redis://redis-master6:6379"
+            ).setPassword("Amaan@123");
+    System.out.println(config);
+    // Create Redisson client
+    RedissonClient redisson = Redisson.create(config);
 
-        // Create Redisson client
-        RedissonClient redisson = Redisson.create(config);
+    // Example: Working with a distributed map
+    RMap<String, String> distributedMap = redisson.getMap("myDistributedMap");
+    distributedMap.put("key", "value");
 
-        // Use Redisson client
-        // Example: Set and get a value
-            redisson.getBucket("myKey").set("myValue");
-        String value = (String) redisson.getBucket("myKey").get();
-        System.out.println("Value from Redis Cluster: " + value);
+    // Retrieve and print the value
+    String value = distributedMap.get("key");
+    System.out.println("Value from distributed map: " + value);
 
-        // Shutdown Redisson client
-        redisson.shutdown();
+    // Shutdown Redisson client
+    redisson.shutdown();
+}catch (Exception e){
+    System.out.println(e.getMessage());
+    System.out.println(e.fillInStackTrace());
+}
 
 
       return  new ResponseEntity<>( this.destinationService.fetchAllDestination(), HttpStatusCode.valueOf(200));

@@ -5,7 +5,7 @@ services:
   redis-master1:
     image: redis:7.2-alpine
     container_name: redis-master1
-    hostname: redis-master1
+
     ports:
       - "7001:6379"
     volumes:
@@ -31,7 +31,7 @@ services:
   redis-master2:
     image: redis:7.2-alpine
     container_name: redis-master2
-    hostname: redis-master2
+
     ports:
       - "7002:6379"
     volumes:
@@ -52,7 +52,7 @@ services:
   redis-master3:
     image: redis:7.2-alpine
     container_name: redis-master3
-    hostname: redis-master3
+
     ports:
       - "7003:6379"
     volumes:
@@ -73,7 +73,7 @@ services:
   redis-master4:
     image: redis:7.2-alpine
     container_name: redis-master4
-    hostname: redis-master4
+
     ports:
       - "7004:6379"
     volumes:
@@ -94,7 +94,7 @@ services:
   redis-master5:
     image: redis:7.2-alpine
     container_name: redis-master5
-    hostname: redis-master5
+
     ports:
       - "7005:6379"
     volumes:
@@ -115,7 +115,7 @@ services:
   redis-master6:
     image: redis:7.2-alpine
     container_name: redis-master6
-    hostname: redis-master6
+
     ports:
       - "7006:6379"
     volumes:

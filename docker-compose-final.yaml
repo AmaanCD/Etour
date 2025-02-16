@@ -62,6 +62,146 @@ services:
       - db
     restart: always
 
+  redis-master1:
+    image: redis:7.2-alpine
+    container_name: redis-master1
+
+    ports:
+      - "7001:6379"
+    volumes:
+      - redis-master1-data:/data                # Named volume for persistence
+      - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - etour-network
+    command: redis-server /usr/local/etc/redis/redis.conf
+    environment:
+      - REDIS_PASSWORD=Amaan@123
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD} ping | grep PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  redis-master2:
+      image: redis:7.2-alpine
+      container_name: redis-master2
+
+      ports:
+        - "7002:6379"
+      volumes:
+        - redis-master2-data:/data
+        - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+      networks:
+        - etour-network
+      command: redis-server /usr/local/etc/redis/redis.conf
+      environment:
+        - REDIS_PASSWORD=Amaan@123
+      restart: unless-stopped
+      healthcheck:
+        test: [ "CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD} ping | grep PONG" ]
+        interval: 5s
+        timeout: 3s
+        retries: 3
+
+  redis-master3:
+      image: redis:7.2-alpine
+      container_name: redis-master3
+
+      ports:
+        - "7003:6379"
+      volumes:
+        - redis-master3-data:/data
+        - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+      networks:
+        - etour-network
+      command: redis-server /usr/local/etc/redis/redis.conf
+      environment:
+        - REDIS_PASSWORD=Amaan@123
+      restart: unless-stopped
+      healthcheck:
+        test: [ "CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD} ping | grep PONG" ]
+        interval: 5s
+        timeout: 3s
+        retries: 3
+
+  redis-master4:
+      image: redis:7.2-alpine
+      container_name: redis-master4
+
+      ports:
+        - "7004:6379"
+      volumes:
+        - redis-master4-data:/data
+        - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+      networks:
+        - etour-network
+      command: redis-server /usr/local/etc/redis/redis.conf
+      environment:
+        - REDIS_PASSWORD=Amaan@123
+      restart: unless-stopped
+      healthcheck:
+        test: [ "CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD} ping | grep PONG" ]
+        interval: 5s
+        timeout: 3s
+        retries: 3
+
+  redis-master5:
+      image: redis:7.2-alpine
+      container_name: redis-master5
+
+      ports:
+        - "7005:6379"
+      volumes:
+        - redis-master5-data:/data
+        - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+      networks:
+        - etour-network
+      command: redis-server /usr/local/etc/redis/redis.conf
+      environment:
+        - REDIS_PASSWORD=Amaan@123
+      restart: unless-stopped
+      healthcheck:
+        test: [ "CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD} ping | grep PONG" ]
+        interval: 5s
+        timeout: 3s
+        retries: 3
+
+  redis-master6:
+      image: redis:7.2-alpine
+      container_name: redis-master6
+
+      ports:
+        - "7006:6379"
+      volumes:
+        - redis-master6-data:/data
+        - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+      networks:
+        - etour-network
+      command: redis-server /usr/local/etc/redis/redis.conf
+      environment:
+        - REDIS_PASSWORD=Amaan@123
+      restart: unless-stopped
+      healthcheck:
+        test: [ "CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD} ping | grep PONG" ]
+        interval: 5s
+        timeout: 3s
+        retries: 3
+
+
+
+
+    # Optional: Redis Exporter for Prometheus Monitoring
+    # redis-exporter:
+    #   image: oliver006/redis_exporter:latest
+    #   ports:
+    #     - "9121:
+
 
 
   # Spring Boot Application Service
@@ -73,6 +213,12 @@ services:
     depends_on:
       - db # Ensure the database starts before the application
       - keycloak
+      - redis-master1
+      - redis-master2
+      - redis-master3
+      - redis-master4
+      - redis-master5
+      - redis-master6
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/etour_db # Database URL
       SPRING_DATASOURCE_USERNAME: postgres # Database username
@@ -87,9 +233,15 @@ services:
 # Define a volume to persist PostgreSQL data
 volumes:
   postgres_data:
-  redis-data:
+
   pgadmin_data:
   keycloak_data:
+  redis-master3-data:
+  redis-master1-data:
+  redis-master2-data:
+  redis-master4-data:
+  redis-master5-data:
+  redis-master6-data:
 
 networks:
   etour-network:
