@@ -1,0 +1,14 @@
+services:
+
+  redisinsight:
+    image: redislabs/redisinsight:2.64.0
+
+    container_name: redisinsight
+    ports:
+      - "8001:8001"   # Exposes the dashboard at http://localhost:8001
+    networks:
+      - etour-network
+
+networks:
+  etour-network:
+    external: true

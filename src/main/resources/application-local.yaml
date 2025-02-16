@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: ETour
+  datasource:
+    url: 'jdbc:postgresql://localhost:5432/etour_db'
+    username: postgres
+    password: Amaan@123
+  jpa:
+    hibernate:
+      ddl-auto: update
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: 'http://localhost:7080/realms/etour'
+    certs: 'http://localhost:7080/realms/etour/protocol/openid-connect/certs'
+server:
+  port: '1080'
+
+redisson:
+  config: |
+    clusterServersConfig:
+      nodeAddresses:
+        - "redis://127.0.0.1:7001"
+        - "redis://127.0.0.1:7002"
+        - "redis://127.0.0.1:7003"
+        - "redis://127.0.0.1:7004"
+        - "redis://127.0.0.1:7005"
+        - "redis://127.0.0.1:7006"
+      password: "Amaan@123"
+

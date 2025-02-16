@@ -1,4 +1,4 @@
-version: '3.8'
+
 
 services:
   # PostgreSQL Database Service
@@ -16,17 +16,7 @@ services:
     networks:
       - etour-network
 
-  # Redis Service for Caching
-  redis:
-    image: redis:6.2-alpine # Use Redis version 6.2
-    container_name: etour-redis
-    ports:
-      - "6379:6379" # Map host port 6379 to container port 6379
-    volumes:
-      - redis-data:/data # Persist Redis data
-    networks:
-      - etour-network
-    # Keycloak Service for Authentication and Authorization
+
 
   pgadmin:
     image: dpage/pgadmin4  # Official pgAdmin 4 image
@@ -82,7 +72,6 @@ services:
       - "8080:8080" # Map host port 8080 to container port 8080
     depends_on:
       - db # Ensure the database starts before the application
-      - redis
       - keycloak
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/etour_db # Database URL
@@ -105,3 +94,4 @@ volumes:
 networks:
   etour-network:
     driver: bridge
+    name: etour-network
