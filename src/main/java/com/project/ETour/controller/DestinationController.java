@@ -42,7 +42,7 @@ try {
     config.useClusterServers()
             // Note: Use service names defined in docker-compose (and internal container ports)
             .addNodeAddress(
-                    "redis://redis-master1:6379",
+
                     "redis://redis-node1:7000",
                     "redis://redis-node2:7001",
                     "redis://redis-node3:7002"
