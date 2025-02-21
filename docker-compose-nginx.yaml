@@ -1,0 +1,201 @@
+
+
+services:
+  # PostgreSQL Database Service
+  db:
+    image: postgres:13 # Use PostgreSQL version 13
+    container_name: etour-postgres # Name of the container
+    environment:
+      POSTGRES_DB: etour_db # Database name
+      POSTGRES_USER: postgres # Database user
+      POSTGRES_PASSWORD: Amaan@123 # Database password
+    ports:
+      - "5432:5432" # Map host port 5432 to container port 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persist database data
+    networks:
+      - etour-network
+
+
+
+  pgadmin:
+    image: dpage/pgadmin4  # Official pgAdmin 4 image
+    container_name: pgadmin-container
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin  # Login credentials for pgAdmin
+      #- PGADMIN_CONFIG_RELATIVE_URL_ROOT=/pgadmin  # Informs pgAdmin of its subpath
+    ports:
+      - "9080:80"  # Expose pgAdmin's UI on port 8080
+
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    restart: always
+    networks:
+      - etour-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:18.0.2
+    container_name: keycloak-etour
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/keycloak_etour
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: Amaan@123
+      KC_HOSTNAME: localhost
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:7080/health/ready" ]
+      interval: 15s
+      timeout: 2s
+      retries: 15
+    command: [ "start-dev", "--http-port", "7080", "--https-port", "7443" ]
+    networks:
+      - etour-network
+
+
+    ports:
+      - "7080:7080"  # Exposing Keycloak on port 8080
+      # Volume for Keycloak data
+      # Volume for Keycloak themes
+    depends_on:
+      - db
+    restart: always
+
+  redis-node1:
+    image: redis:7.2-alpine
+    container_name: redis-node1
+    volumes:
+      - ./conf/redis-node1.conf:/usr/local/etc/redis/redis.conf
+      - redis-node1-data:/data                # Named volume for persistence
+    networks:
+      - etour-network
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    restart: unless-stopped
+    ports:
+      - "7000:7000"
+
+  redis-node2:
+    image: redis:7.2-alpine
+    container_name: redis-node2
+    volumes:
+      - ./conf/redis-node2.conf:/usr/local/etc/redis/redis.conf
+      - redis-node2-data:/data                # Named volume for persistence
+    networks:
+      - etour-network
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    restart: unless-stopped
+    ports:
+      - "7001:7001"
+
+  redis-node3:
+    image: redis:7.2-alpine
+    container_name: redis-node3
+    volumes:
+      - ./conf/redis-node3.conf:/usr/local/etc/redis/redis.conf
+      - redis-node3-data:/data                # Named volume for persistence
+    networks:
+      - etour-network
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    restart: unless-stopped
+    ports:
+      - "7002:7002"
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    ports:
+      - "5540:5540"
+    volumes:
+      - redis-insight-data:/data
+    depends_on:
+      - cluster-init
+    networks:
+      - etour-network
+
+    command: ["--dir","/db"]
+
+
+  cluster-init:
+    image: redis:7.2-alpine
+    depends_on:
+      - redis-node3
+      - redis-node2
+      - redis-node1
+
+    networks:
+      - etour-network
+    command: >
+      sh -c "sleep 5 && echo yes | redis-cli --cluster create redis-node1:7000 redis-node2:7001 redis-node3:7002 --cluster-replicas 0"
+      
+
+
+  # Spring Boot Application Service
+  app:
+    image: ghcr.io/amaancd/e-tour-app:latest # Build the Docker image using the Dockerfile in the current directory
+    container_name: etour-app # Name of the container
+    ports:
+      - "8080:8080" # Map host port 8080 to container port 8080
+    depends_on:
+      - db # Ensure the database starts before the application
+      - keycloak
+      - cluster-init
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/etour_db # Database URL
+      SPRING_DATASOURCE_USERNAME: postgres # Database username
+      SPRING_DATASOURCE_PASSWORD: Amaan@123 # Database password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update # Hibernate auto-update schema
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: http://keycloak:7080/realms/etour
+      SPRING_SECURITY_CERTS : http://keycloak:7080/realms/etour/protocol/openid-connect/certs
+    pull_policy: always #This is must or else it will never pull latest image from github action
+
+    networks:
+      - etour-network
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    depends_on:
+      - db
+      - keycloak
+      - cluster-init
+      - pgadmin
+      - app
+    networks:
+      - etour-network
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+        - "80:80"
+# Define a volume to persist PostgreSQL data
+volumes:
+  postgres_data:
+  pgadmin_data:
+  keycloak_data:
+  redis-node1-data:
+  redis-node2-data:
+  redis-node3-data:
+  redis-insight-data:
+
+networks:
+  etour-network:
+    driver: bridge
+    name: etour-network

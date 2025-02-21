@@ -1,6 +1,90 @@
 version: '3.8'
 
 services:
+  redis-node1:
+    image: redis:7.2-alpine
+    container_name: redis-node1
+    volumes:
+      - ./conf/redis-node1.conf:/usr/local/etc/redis/redis.conf
+      - redis-node1-data:/data                # Named volume for persistence
+    networks:
+      - etour-network
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    restart: unless-stopped
+    ports:
+      - "7000:7000"
+
+  redis-node2:
+    image: redis:7.2-alpine
+    container_name: redis-node2
+    volumes:
+      - ./conf/redis-node2.conf:/usr/local/etc/redis/redis.conf
+      - redis-node2-data:/data                # Named volume for persistence
+    networks:
+      - etour-network
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    restart: unless-stopped
+    ports:
+      - "7001:7001"
+
+  redis-node3:
+    image: redis:7.2-alpine
+    container_name: redis-node3
+    volumes:
+      - ./conf/redis-node3.conf:/usr/local/etc/redis/redis.conf
+      - redis-node3-data:/data                # Named volume for persistence
+    networks:
+      - etour-network
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+    restart: unless-stopped
+    ports:
+      - "7002:7002"
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    ports:
+      - "5540:5540"
+    volumes:
+      - redis-insight-data:/data
+    depends_on:
+      - cluster-init
+    networks:
+      - etour-network
+
+    command: [ "--dir","/db" ]
+
+
+  cluster-init:
+    image: redis:7.2-alpine
+    depends_on:
+      - redis-node3
+      - redis-node2
+      - redis-node1
+
+    networks:
+      - etour-network
+    command: >
+      sh -c "sleep 5 && echo yes | redis-cli --cluster create redis-node1:7000 redis-node2:7001 redis-node3:7002 --cluster-replicas 0"
+
+
   # PostgreSQL Database Service
   db:
     image: postgres:13 # Use PostgreSQL version 13
