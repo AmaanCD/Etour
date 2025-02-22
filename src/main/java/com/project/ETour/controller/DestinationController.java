@@ -30,22 +30,15 @@ public class DestinationController {
     public ResponseEntity<List<Destination>> fetchAllDestination(){
 
         Config config = new Config();
-//             config.useClusterServers()
-//                .addNodeAddress("redis://redis-master1:6379") // Use service name
-//                .addNodeAddress("redis://redis-master2:6379")
-//                .addNodeAddress("redis://redis-master3:6379")
-//                .addNodeAddress("redis://redis-master4:6379")
-//                .addNodeAddress("redis://redis-master5:6379")
-//                .addNodeAddress("redis://redis-master6:6379")
-//                .setPassword("Amaan@123"); // Redis password
+
 try {
     config.useClusterServers()
             // Note: Use service names defined in docker-compose (and internal container ports)
             .addNodeAddress(
 
-                    "redis://redis-node1:7000",
-                    "redis://redis-node2:7001",
-                    "redis://redis-node3:7002"
+                    "redis://redis-node1:7000"
+                   /* "redis://redis-node2:7001",
+                    "redis://redis-node3:7002"*/
 
             );
     System.out.println(config);
