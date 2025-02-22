@@ -47,7 +47,7 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
       KC_HTTP_RELATIVE_PATH : /auth
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:7080/health/ready" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:7080/auth/health/ready" ]
       interval: 15s
       timeout: 2s
       retries: 15
@@ -168,7 +168,11 @@ services:
       SPRING_SECURITY_CERTS : http://keycloak:7080/auth/realms/etour/protocol/openid-connect/certs
 
     pull_policy: always #This is must or else it will never pull latest image from github action
-
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - etour-network
 
@@ -176,11 +180,11 @@ services:
     image: nginx:latest
     container_name: nginx
     depends_on:
-      - db
-      - keycloak
-      - cluster-init
-      - pgadmin
-      - app
+      app:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+
     networks:
       - etour-network
     volumes:
