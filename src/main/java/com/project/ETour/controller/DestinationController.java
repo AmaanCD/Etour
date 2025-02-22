@@ -29,38 +29,6 @@ public class DestinationController {
     @GetMapping(value = "/destination")
     public ResponseEntity<List<Destination>> fetchAllDestination(){
 
-        Config config = new Config();
-
-try {
-    config.useClusterServers()
-            // Note: Use service names defined in docker-compose (and internal container ports)
-            .addNodeAddress(
-
-                    "redis://redis-node1:7000"
-                   /* "redis://redis-node2:7001",
-                    "redis://redis-node3:7002"*/
-
-            );
-    System.out.println(config);
-    // Create Redisson client
-    RedissonClient redisson = Redisson.create(config);
-
-    // Example: Working with a distributed map
-    RMap<String, String> distributedMap = redisson.getMap("myDistributedMap");
-    distributedMap.put("key", "value");
-
-    // Retrieve and print the value
-    String value = distributedMap.get("key");
-    System.out.println("Value from distributed map: " + value);
-
-    // Shutdown Redisson client
-    redisson.shutdown();
-}catch (Exception e){
-    System.out.println(e.getMessage());
-    System.out.println(e.fillInStackTrace());
-}
-
-
       return  new ResponseEntity<>( this.destinationService.fetchAllDestination(), HttpStatusCode.valueOf(200));
     }
 

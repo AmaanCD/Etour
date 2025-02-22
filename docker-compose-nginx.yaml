@@ -68,7 +68,7 @@ services:
     image: redis:7.2-alpine
     container_name: redis-node1
     volumes:
-      - ./conf/redis-node1.conf:/usr/local/etc/redis/redis.conf
+      - ./conf/redis-node1.conf:/usr/local/etc/redis/redis.conf:ro
       - redis-node1-data:/data                # Named volume for persistence
     networks:
       - etour-network
@@ -87,7 +87,7 @@ services:
     image: redis:7.2-alpine
     container_name: redis-node2
     volumes:
-      - ./conf/redis-node2.conf:/usr/local/etc/redis/redis.conf
+      - ./conf/redis-node2.conf:/usr/local/etc/redis/redis.conf:ro
       - redis-node2-data:/data                # Named volume for persistence
     networks:
       - etour-network
@@ -106,7 +106,7 @@ services:
     image: redis:7.2-alpine
     container_name: redis-node3
     volumes:
-      - ./conf/redis-node3.conf:/usr/local/etc/redis/redis.conf
+      - ./conf/redis-node3.conf:/usr/local/etc/redis/redis.conf:ro
       - redis-node3-data:/data                # Named volume for persistence
     networks:
       - etour-network
@@ -168,11 +168,7 @@ services:
       SPRING_SECURITY_CERTS : http://keycloak:7080/auth/realms/etour/protocol/openid-connect/certs
 
     pull_policy: always #This is must or else it will never pull latest image from github action
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+
     networks:
       - etour-network
 
@@ -180,10 +176,13 @@ services:
     image: nginx:latest
     container_name: nginx
     depends_on:
-      app:
-        condition: service_healthy
-      keycloak:
-        condition: service_healthy
+      - app
+      - cluster-init
+      - keycloak
+      - pgadmin
+      - db
+      - redis-insight
+
 
     networks:
       - etour-network
