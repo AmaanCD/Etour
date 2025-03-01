@@ -4,16 +4,10 @@ import com.project.ETour.model.Destination;
 import com.project.ETour.model.DestinationRecord;
 import com.project.ETour.service.DestinationService;
 
-import org.redisson.Redisson;
-import org.redisson.api.RMap;
-import org.redisson.api.RedissonClient;
-import org.redisson.config.ClusterServersConfig;
-import org.redisson.config.Config;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
 
 @RestController

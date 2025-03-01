@@ -124,7 +124,10 @@ services:
   redis-insight:
     image: redis/redisinsight:latest
     ports:
-      - "5540:5540"
+      - "5545:5540"
+    environment:
+      RI_PROXY_PATH : /redisinsight
+
     volumes:
       - redis-insight-data:/data
     depends_on:
