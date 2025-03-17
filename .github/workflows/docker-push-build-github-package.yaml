@@ -6,6 +6,7 @@ on:
       - main # Trigger on push to the main branch
       - dev
       - nginx-code
+      - develop
 
 jobs:
   build-and-push:

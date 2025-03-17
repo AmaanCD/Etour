@@ -1,0 +1,81 @@
+services:
+  postgres:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    volumes:
+      - postgres_data_1:/var/lib/postgresql/data
+    restart: always
+
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@etour.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+#    ports:
+#      - "5050:80"
+    volumes:
+      - pgadmin_data_1:/var/lib/pgadmin
+    restart: always
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.2
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_server
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_RELATIVE_PATH : /auth
+    command: [ "start-dev" ]
+#    ports:
+#      - "8080:8080"
+    depends_on:
+      - postgres
+    restart: always
+    volumes:
+      # Persist Keycloak data (this directory is used in the Quarkus-based distribution)
+      - keycloak_data_1:/opt/keycloak/data
+
+  app:
+    image: ghcr.io/amaancd/e-tour-app:latest # Build the Docker image using the Dockerfile in the current directory
+    container_name: etour-app # Name of the container
+#    ports:
+#      - "8080:8080" # Map host port 8080 to container port 8080
+    depends_on:
+      - postgres # Ensure the database starts before the application
+      - pgadmin
+      - keycloak
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/keycloak # Database URL
+      SPRING_DATASOURCE_USERNAME: postgres # Database username
+      SPRING_DATASOURCE_PASSWORD: postgres # Database password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update # Hibernate auto-update schema
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: http://etour.com/auth/realms/master
+      SPRING_SECURITY_CERTS : http://etour.com/auth/realms/master/protocol/openid-connect/certs
+
+    pull_policy: always #This is must or else it will never pull latest image from github action
+
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-ssl.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    restart: always
+
+
+volumes:
+  postgres_data_1:
+  pgadmin_data_1:
+  keycloak_data_1:
