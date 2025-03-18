@@ -58,10 +58,13 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres # Database username
       SPRING_DATASOURCE_PASSWORD: postgres # Database password
       SPRING_JPA_HIBERNATE_DDL_AUTO: update # Hibernate auto-update schema
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: http://etour.com/auth/realms/master
-      SPRING_SECURITY_CERTS : http://etour.com/auth/realms/master/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: http://keycloak:8080/auth/realms/etour
+      SPRING_SECURITY_CERTS : http://keycloak:8080/auth/realms/etour/protocol/openid-connect/certs
+
+      SERVER_PORT : 1080
 
     pull_policy: always #This is must or else it will never pull latest image from github action
+    restart: always
 
 
   nginx:
